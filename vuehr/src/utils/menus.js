@@ -1,5 +1,28 @@
 import {getRequest} from "./api";
 
+// Vite 用 import.meta.glob 预扫描所有视图组件，替代 webpack 的 require([...], resolve)。
+// 返回的是 { '../views/emp/EmpBasic.vue': () => import(...) } 形式的懒加载映射。
+const viewModules = import.meta.glob('../views/**/*.vue');
+
+// 根据组件名前缀解析出它在 views 下的相对路径（与原 require 分支逻辑等价）。
+const resolveComponent = (component) => {
+    let path;
+    if (component.startsWith("Home")) {
+        path = `../views/${component}.vue`;
+    } else if (component.startsWith("Emp")) {
+        path = `../views/emp/${component}.vue`;
+    } else if (component.startsWith("Per")) {
+        path = `../views/per/${component}.vue`;
+    } else if (component.startsWith("Sal")) {
+        path = `../views/sal/${component}.vue`;
+    } else if (component.startsWith("Sta")) {
+        path = `../views/sta/${component}.vue`;
+    } else if (component.startsWith("Sys")) {
+        path = `../views/sys/${component}.vue`;
+    }
+    return viewModules[path];
+}
+
 export const initMenu = (router, store) => {
     if (store.state.routes.length > 0) {
         return;
@@ -9,7 +32,6 @@ export const initMenu = (router, store) => {
             let fmtRoutes = formatRoutes(data);
             router.addRoutes(fmtRoutes);
             store.commit('initRoutes', fmtRoutes);
-            store.dispatch('connect');
         }
     })
 }
@@ -33,21 +55,8 @@ export const formatRoutes = (routes) => {
             iconCls: iconCls,
             meta: meta,
             children: children,
-            component(resolve) {
-                if (component.startsWith("Home")) {
-                    require(['../views/' + component + '.vue'], resolve);
-                } else if (component.startsWith("Emp")) {
-                    require(['../views/emp/' + component + '.vue'], resolve);
-                } else if (component.startsWith("Per")) {
-                    require(['../views/per/' + component + '.vue'], resolve);
-                } else if (component.startsWith("Sal")) {
-                    require(['../views/sal/' + component + '.vue'], resolve);
-                } else if (component.startsWith("Sta")) {
-                    require(['../views/sta/' + component + '.vue'], resolve);
-                } else if (component.startsWith("Sys")) {
-                    require(['../views/sys/' + component + '.vue'], resolve);
-                }
-            }
+            // Vue2 异步组件：工厂函数返回 Promise（Vite 懒加载）。
+            component: resolveComponent(component)
         }
         fmRoutes.push(fmRouter);
     })

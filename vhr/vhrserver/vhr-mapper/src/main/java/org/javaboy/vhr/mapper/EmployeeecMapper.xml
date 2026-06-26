@@ -114,4 +114,11 @@
       remark = #{remark,jdbcType=VARCHAR}
     where id = #{id,jdbcType=INTEGER}
   </update>
+  <select id="getByEid" resultMap="BaseResultMap" parameterType="java.lang.Integer" >
+    select
+    <include refid="Base_Column_List" />
+    from employeeec
+    where eid = #{eid,jdbcType=INTEGER}
+    order by ecDate desc
+  </select>
 </mapper>

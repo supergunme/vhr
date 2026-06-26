@@ -10,3 +10,16 @@ target/
 !.mvn/wrapper/maven-wrapper.jar
 vhr.wiki
 人事管理系统需求规格说明书.doc
+
+# Playwright CLI logs/cache
+.playwright-cli/
+
+# Test artifacts
+captcha.png
+login-check.yaml
+
+# OS files
+Thumbs.db
+
+# Local user uploads (runtime generated)
+userface/

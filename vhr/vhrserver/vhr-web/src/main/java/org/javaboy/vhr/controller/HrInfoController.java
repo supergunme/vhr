@@ -1,18 +1,19 @@
 package org.javaboy.vhr.controller;
 
-import org.javaboy.vhr.config.FastDFSUtils;
 import org.javaboy.vhr.model.Hr;
 import org.javaboy.vhr.model.RespBean;
 import org.javaboy.vhr.service.HrService;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.io.File;
+import java.io.IOException;
 import java.util.Map;
+import java.util.UUID;
 
 /**
  * @作者 江南一点雨
@@ -28,9 +29,6 @@ public class HrInfoController {
 
     @Autowired
     HrService hrService;
-
-    @Value("${fastdfs.nginx.host}")
-    String nginxHost;
 
     @GetMapping("/hr/info")
     public Hr getCurrentHr(Authentication authentication) {
@@ -58,9 +56,24 @@ public class HrInfoController {
     }
 
     @PostMapping("/hr/userface")
-    public RespBean updateHrUserface(MultipartFile file, Integer id,Authentication authentication) {
-        String fileId = FastDFSUtils.upload(file);
-        String url = nginxHost + fileId;
+    public RespBean updateHrUserface(MultipartFile file, Integer id, Authentication authentication) {
+        if (file == null || file.isEmpty()) {
+            return RespBean.error("上传失败，文件为空!");
+        }
+        String oldName = file.getOriginalFilename();
+        String suffix = (oldName != null && oldName.contains(".")) ? oldName.substring(oldName.lastIndexOf(".")) : "";
+        String newName = UUID.randomUUID().toString() + suffix;
+        File dir = new File(System.getProperty("user.dir"), "userface");
+        if (!dir.exists()) {
+            dir.mkdirs();
+        }
+        try {
+            file.transferTo(new File(dir, newName));
+        } catch (IOException e) {
+            e.printStackTrace();
+            return RespBean.error("上传失败!");
+        }
+        String url = "/userface/" + newName;
         if (hrService.updateUserface(url, id) == 1) {
             Hr hr = (Hr) authentication.getPrincipal();
             hr.setUserface(url);

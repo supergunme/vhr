@@ -2,9 +2,8 @@
     <div>
         <el-container>
             <el-header class="homeHeader">
-                <div class="title">微人事</div>
+                <div class="title">员工信息同步平台</div>
                 <div>
-                    <el-button icon="el-icon-bell" type="text" style="margin-right: 8px;color: #000000;" size="normal" @click="goChat"></el-button>
                     <el-dropdown class="userInfo" @command="commandHandler">
   <span class="el-dropdown-link">
     {{user.name}}<i><img :src="user.userface" alt=""></i>
@@ -37,7 +36,7 @@
                         <el-breadcrumb-item>{{this.$router.currentRoute.name}}</el-breadcrumb-item>
                     </el-breadcrumb>
                     <div class="homeWelcome" v-if="this.$router.currentRoute.path=='/home'">
-                        欢迎来到微人事！
+                        欢迎来到员工信息同步平台！
                     </div>
                     <router-view class="homeRouterView"/>
                 </el-main>
@@ -63,9 +62,6 @@
             }
         },
         methods: {
-            goChat() {
-                this.$router.push("/chat");
-            },
             commandHandler(cmd) {
                 if (cmd == 'logout') {
                     this.$confirm('此操作将注销登录, 是否继续?', '提示', {

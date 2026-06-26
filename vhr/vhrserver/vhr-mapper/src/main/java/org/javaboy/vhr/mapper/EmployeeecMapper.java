@@ -2,6 +2,8 @@ package org.javaboy.vhr.mapper;
 
 import org.javaboy.vhr.model.Employeeec;
 
+import java.util.List;
+
 public interface EmployeeecMapper {
     int deleteByPrimaryKey(Integer id);
 
@@ -14,4 +16,6 @@ public interface EmployeeecMapper {
     int updateByPrimaryKeySelective(Employeeec record);
 
     int updateByPrimaryKey(Employeeec record);
+
+    List<Employeeec> getByEid(Integer eid);
 }
