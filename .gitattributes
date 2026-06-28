@@ -1,5 +1,3 @@
-*.css linguist-language=Java
-*.less linguist-language=Java
-*.js linguist-language=Java
-*.html linguist-language=Java
-*.vue linguist-language=Java
+*.ts linguist-language=TypeScript
+*.tsx linguist-language=TypeScript
+*.java linguist-language=Java

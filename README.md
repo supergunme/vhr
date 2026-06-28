@@ -90,7 +90,6 @@ npm run dev    # http://localhost:3000
 │   │   ├── router/          # React Router v6
 │   │   └── types/           # TypeScript 类型
 │   └── public/              # Logo + SVG头像
-├── vuehr/                   # Vue 2 旧前端 (废弃)
 └── CODEBUDDY.md             # 开发指南
 ```
 

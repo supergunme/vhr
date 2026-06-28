@@ -32,7 +32,6 @@ This file provides guidance to CodeBuddy Code when working with code in this rep
 │   │   ├── router/         # React Router v6
 │   │   └── types/          # TypeScript 类型定义
 │   └── public/             # 静态资源 (logo, avatars)
-├── vuehr/                  # Vue 2 旧前端 (已废弃，保留参考)
 ├── CODEBUDDY.md            # 本文件
 └── 黑农logo.png            # 品牌 Logo 源文件
 ```
