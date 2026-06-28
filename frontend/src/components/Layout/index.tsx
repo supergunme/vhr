@@ -15,6 +15,7 @@ import {
   MenuUnfoldIcon,
   PoweroffIcon,
   BrowseIcon,
+  StarIcon,
 } from 'tdesign-icons-react';
 import { useAppStore } from '../../store';
 import './index.css';
@@ -43,6 +44,7 @@ const Layout: React.FC = () => {
 
   const handleDropdown = (data: { value: string }) => {
     if (data.value === 'logout') handleLogout();
+    if (data.value === 'profile') navigate('/app/profile');
   };
 
   return (
@@ -78,6 +80,9 @@ const Layout: React.FC = () => {
             <MenuItem value="/app/employee/import" icon={<UploadIcon />}>
               批量导入
             </MenuItem>
+            <MenuItem value="/app/employee/rewards" icon={<StarIcon />}>
+              奖惩管理
+            </MenuItem>
           </SubMenu>
           <SubMenu value="analysis" title="数据分析" icon={<ChartIcon />}>
             <MenuItem value="/app/analysis/radar" icon={<ChartRadialIcon />}>
@@ -93,6 +98,7 @@ const Layout: React.FC = () => {
           </SubMenu>
           <SubMenu value="system" title="系统管理" icon={<SettingIcon />}>
             <MenuItem value="/app/system/user">用户管理</MenuItem>
+            <MenuItem value="/app/system/org">组织架构</MenuItem>
             <MenuItem value="/app/system/log">操作日志</MenuItem>
             <MenuItem value="/app/system/dict">数据字典</MenuItem>
           </SubMenu>

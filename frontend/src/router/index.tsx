@@ -10,6 +10,7 @@ const EmployeeList = React.lazy(() => import('../pages/Employee/List'));
 const EmployeeDetail = React.lazy(() => import('../pages/Employee/Detail'));
 const EmployeeForm = React.lazy(() => import('../pages/Employee/Form'));
 const EmployeeImport = React.lazy(() => import('../pages/Employee/Import'));
+const EmployeeRewards = React.lazy(() => import('../pages/Employee/Rewards'));
 const AnalysisRadar = React.lazy(() => import('../pages/Analysis/Radar'));
 const AnalysisCompare = React.lazy(() => import('../pages/Analysis/Compare'));
 const AnalysisRecommend = React.lazy(() => import('../pages/Analysis/Recommend'));
@@ -17,6 +18,8 @@ const LeaderOverview = React.lazy(() => import('../pages/Leader/Overview'));
 const SystemUser = React.lazy(() => import('../pages/System/User'));
 const SystemLog = React.lazy(() => import('../pages/System/Log'));
 const SystemDict = React.lazy(() => import('../pages/System/Dict'));
+const SystemOrg = React.lazy(() => import('../pages/System/Org'));
+const Profile = React.lazy(() => import('../pages/Profile'));
 
 const LazyWrapper: React.FC<{ children: React.ReactNode }> = ({ children }) => (
   <Suspense
@@ -100,6 +103,14 @@ const router = createBrowserRouter([
         ),
       },
       {
+        path: 'employee/rewards',
+        element: (
+          <LazyWrapper>
+            <EmployeeRewards />
+          </LazyWrapper>
+        ),
+      },
+      {
         path: 'analysis/radar',
         element: (
           <LazyWrapper>
@@ -152,6 +163,22 @@ const router = createBrowserRouter([
         element: (
           <LazyWrapper>
             <SystemDict />
+          </LazyWrapper>
+        ),
+      },
+      {
+        path: 'system/org',
+        element: (
+          <LazyWrapper>
+            <SystemOrg />
+          </LazyWrapper>
+        ),
+      },
+      {
+        path: 'profile',
+        element: (
+          <LazyWrapper>
+            <Profile />
           </LazyWrapper>
         ),
       },

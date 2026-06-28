@@ -1,0 +1,9 @@
+.rewards-page {
+  padding: 0;
+}
+
+.rewards-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
