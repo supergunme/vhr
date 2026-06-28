@@ -1,0 +1,81 @@
+.employee-form-page {
+  max-width: 900px;
+  margin: 0 auto;
+}
+
+.form-card {
+  border-radius: 10px !important;
+}
+
+.form-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 24px;
+}
+
+.form-title {
+  font-size: 20px;
+  font-weight: 600;
+  color: #1a2b3c;
+  margin: 0;
+}
+
+.form-steps {
+  margin-bottom: 32px;
+}
+
+/* Override TDesign Steps active color to brand green */
+.form-steps .t-steps-item__icon--process {
+  background-color: #006b3f !important;
+  border-color: #006b3f !important;
+}
+
+.form-steps .t-steps-item__title--process {
+  color: #006b3f !important;
+}
+
+.form-steps .t-steps-item__icon--finish {
+  border-color: #006b3f !important;
+  color: #006b3f !important;
+}
+
+.form-steps .t-steps-item__title--finish {
+  color: #006b3f !important;
+}
+
+.form-content {
+  min-height: 320px;
+  padding: 16px 0;
+}
+
+.step-form {
+  max-width: 800px;
+}
+
+.form-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px 24px;
+}
+
+.form-full-width {
+  grid-column: span 2;
+}
+
+.form-actions {
+  display: flex;
+  justify-content: center;
+  padding-top: 24px;
+  border-top: 1px solid #e7e7e7;
+}
+
+@media (max-width: 768px) {
+  .form-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .form-full-width {
+    grid-column: span 1;
+  }
+}

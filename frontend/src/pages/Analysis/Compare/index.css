@@ -1,0 +1,28 @@
+.compare-page {
+  max-width: 1000px;
+}
+
+.compare-controls {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.compare-placeholder {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 300px;
+  color: #8c8c8c;
+  font-size: 15px;
+  background: #f9f9f9;
+  border-radius: 8px;
+}
+
+.compare-chart-wrapper {
+  background: #ffffff;
+  border-radius: 8px;
+  border: 1px solid #e7e7e7;
+  padding: 16px;
+}

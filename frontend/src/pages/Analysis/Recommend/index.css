@@ -1,0 +1,79 @@
+.recommend-page {
+  max-width: 960px;
+}
+
+.recommend-header {
+  margin-bottom: 24px;
+}
+
+.recommend-placeholder {
+  text-align: center;
+  padding: 60px 0;
+  color: #8c8c8c;
+  font-size: 14px;
+}
+
+.candidates-list {
+  margin-top: 16px;
+}
+
+.candidate-card {
+  border-radius: 8px !important;
+  transition: box-shadow 0.2s ease;
+}
+
+.candidate-card:hover {
+  box-shadow: 0 4px 12px rgba(0, 107, 63, 0.1);
+}
+
+.candidate-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.candidate-rank {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: #006b3f;
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 14px;
+  flex-shrink: 0;
+}
+
+.candidate-info {
+  flex: 1;
+}
+
+.candidate-name {
+  font-size: 16px;
+  font-weight: 600;
+  color: #1a2b3c;
+}
+
+.candidate-dept {
+  font-size: 13px;
+  color: #8c8c8c;
+  margin-left: 8px;
+}
+
+.candidate-score {
+  font-size: 14px;
+  color: #1a2b3c;
+}
+
+.candidate-score strong {
+  color: #006b3f;
+  font-size: 18px;
+}
+
+.candidate-tags {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}

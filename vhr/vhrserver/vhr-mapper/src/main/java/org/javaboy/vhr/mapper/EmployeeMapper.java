@@ -5,6 +5,7 @@ import org.javaboy.vhr.model.Employee;
 
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
 
 public interface EmployeeMapper {
     int deleteByPrimaryKey(Integer id);
@@ -32,4 +33,8 @@ public interface EmployeeMapper {
     List<Employee> getEmployeeByPageWithSalary(@Param("page") Integer page, @Param("size") Integer size);
 
     Integer updateEmployeeSalaryById(@Param("eid") Integer eid, @Param("sid") Integer sid);
+
+    List<Map<String, Object>> getBriefEmployees();
+
+    Integer getEcPointSum(@Param("eid") Integer eid);
 }

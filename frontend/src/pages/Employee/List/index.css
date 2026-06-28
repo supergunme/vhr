@@ -1,0 +1,17 @@
+.employee-list-page {
+  padding: 0;
+}
+
+.search-card .search-bar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.filter-panel {
+  margin-top: 16px;
+  padding-top: 16px;
+  border-top: 1px solid #e7e7e7;
+}

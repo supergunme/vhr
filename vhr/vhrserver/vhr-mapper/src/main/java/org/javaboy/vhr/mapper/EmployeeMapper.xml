@@ -521,4 +521,15 @@
       workAge = #{workAge,jdbcType=INTEGER}
     where id = #{id,jdbcType=INTEGER}
   </update>
+  <select id="getBriefEmployees" resultType="java.util.Map">
+    select e.id, e.name, e.workID, d.name as departmentName
+    from employee e
+    left join department d on e.departmentId = d.id
+    order by e.id
+  </select>
+  <select id="getEcPointSum" resultType="java.lang.Integer" parameterType="java.lang.Integer">
+    select COALESCE(SUM(ecPoint), 0)
+    from employeeec
+    where eid = #{eid,jdbcType=INTEGER}
+  </select>
 </mapper>

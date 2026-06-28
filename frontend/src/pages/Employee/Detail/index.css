@@ -1,0 +1,125 @@
+.employee-detail-page {
+  max-width: 960px;
+  margin: 0 auto;
+}
+
+.detail-loading {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 300px;
+}
+
+.detail-empty {
+  text-align: center;
+  padding: 80px 0;
+  color: #8c8c8c;
+}
+
+.back-btn {
+  margin-bottom: 16px;
+  color: #006b3f !important;
+}
+
+/* Profile Header Card */
+.profile-header-card {
+  background: linear-gradient(135deg, #006b3f 0%, #00a651 100%) !important;
+  border: none !important;
+  border-radius: 12px !important;
+  margin-bottom: 20px;
+}
+
+.profile-header {
+  display: flex;
+  align-items: center;
+  padding: 8px 0;
+}
+
+.profile-avatar {
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  border: 3px solid rgba(255, 255, 255, 0.6);
+  object-fit: cover;
+  flex-shrink: 0;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.profile-meta {
+  margin-left: 24px;
+  flex: 1;
+}
+
+.profile-name {
+  font-size: 26px;
+  font-weight: 700;
+  color: #ffffff;
+  margin: 0 0 6px;
+}
+
+.profile-sub {
+  font-size: 14px;
+  color: rgba(255, 255, 255, 0.85);
+  margin: 0 0 4px;
+}
+
+.profile-level {
+  font-size: 13px;
+  color: rgba(255, 255, 255, 0.7);
+  margin: 0;
+}
+
+.profile-status {
+  flex-shrink: 0;
+}
+
+/* Info Card */
+.info-card {
+  border-radius: 12px !important;
+}
+
+.info-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0;
+  margin-top: 16px;
+}
+
+.info-cell {
+  display: flex;
+  flex-direction: column;
+  padding: 14px 20px;
+  border-bottom: 1px solid #f0f0f0;
+  transition: background-color 0.2s ease;
+}
+
+.info-cell:hover {
+  background-color: #f9fcf9;
+}
+
+.info-cell.span-full {
+  grid-column: span 2;
+}
+
+.info-label {
+  font-size: 12px;
+  color: #8c8c8c;
+  margin-bottom: 4px;
+  letter-spacing: 0.3px;
+  text-transform: uppercase;
+}
+
+.info-value {
+  font-size: 15px;
+  color: #1a2b3c;
+  font-weight: 500;
+}
+
+/* Tabs overrides */
+.info-card .t-tabs__nav-item.t-is-active {
+  color: #006b3f !important;
+}
+
+.info-card .t-tabs__bar {
+  background-color: #006b3f !important;
+}
