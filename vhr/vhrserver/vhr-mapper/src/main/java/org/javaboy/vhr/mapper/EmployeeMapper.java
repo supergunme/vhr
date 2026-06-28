@@ -37,4 +37,14 @@ public interface EmployeeMapper {
     List<Map<String, Object>> getBriefEmployees();
 
     Integer getEcPointSum(@Param("eid") Integer eid);
+
+    Integer getTotalCount();
+
+    Integer getDepartmentCount();
+
+    Integer getHiredThisMonth();
+
+    List<Map<String, Object>> getDepartmentDistribution();
+
+    List<Map<String, Object>> getEducationDistribution();
 }

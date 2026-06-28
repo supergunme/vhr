@@ -532,4 +532,28 @@
     from employeeec
     where eid = #{eid,jdbcType=INTEGER}
   </select>
+  <select id="getTotalCount" resultType="java.lang.Integer">
+    select count(*) from employee
+  </select>
+  <select id="getDepartmentCount" resultType="java.lang.Integer">
+    select count(*) from department
+  </select>
+  <select id="getHiredThisMonth" resultType="java.lang.Integer">
+    select count(*) from employee where DATE_FORMAT(beginDate,'%Y-%m') = DATE_FORMAT(NOW(),'%Y-%m')
+  </select>
+  <select id="getDepartmentDistribution" resultType="java.util.HashMap">
+    select d.name as name, count(e.id) as value
+    from employee e
+    left join department d on e.departmentId = d.id
+    group by d.name
+    order by value desc
+    limit 6
+  </select>
+  <select id="getEducationDistribution" resultType="java.util.HashMap">
+    select tiptopDegree as name, count(*) as value
+    from employee
+    where tiptopDegree is not null and tiptopDegree != ''
+    group by tiptopDegree
+    order by value desc
+  </select>
 </mapper>

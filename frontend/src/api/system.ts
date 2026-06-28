@@ -21,6 +21,14 @@ export function getAllRoles(): Promise<any[]> {
   return request.get('/system/hr/roles');
 }
 
+export function addHr(data: { name: string; username: string; password: string; phone?: string }): Promise<any> {
+  return request.post('/system/hr/', data);
+}
+
+export function updateHr(data: { id: number; name?: string; phone?: string; address?: string }): Promise<any> {
+  return request.put('/system/hr/', data);
+}
+
 export function getDepartments(): Promise<any[]> {
   return request.get('/system/basic/department/');
 }

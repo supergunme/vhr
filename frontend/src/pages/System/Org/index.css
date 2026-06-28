@@ -1,5 +1,5 @@
 .org-page {
-  padding: 0;
+  max-width: 1200px;
 }
 
 .tab-content {
@@ -7,20 +7,122 @@
 }
 
 .tab-toolbar {
-  margin-bottom: 12px;
-}
-
-.dept-tree-container {
-  padding: 12px;
-  border: 1px solid #e7e7e7;
-  border-radius: 6px;
-  min-height: 300px;
-}
-
-.dept-tree-node {
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  width: 100%;
-  padding-right: 8px;
+  gap: 16px;
+  margin-bottom: 16px;
+}
+
+.toolbar-hint {
+  font-size: 12px;
+  color: #999;
+}
+
+.section-title {
+  font-size: 15px;
+  font-weight: 600;
+  color: #1a2b3c;
+  margin: 0 0 12px;
+  padding-left: 8px;
+  border-left: 3px solid #006b3f;
+}
+
+/* Department Tree */
+.dept-tree-container {
+  border: 1px solid #e7e7e7;
+  border-radius: 8px;
+  padding: 12px;
+  max-height: 500px;
+  overflow-y: auto;
+  background: #fafbfc;
+}
+
+.tree-empty {
+  text-align: center;
+  color: #999;
+  padding: 40px;
+}
+
+.dept-node-wrapper {
+  user-select: none;
+}
+
+.dept-node {
+  display: flex;
+  align-items: center;
+  padding: 6px 8px;
+  border-radius: 6px;
+  transition: background-color 0.15s;
+  gap: 4px;
+}
+
+.dept-node:hover {
+  background-color: #e8f5e9;
+}
+
+.dept-expand {
+  width: 20px;
+  height: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: transform 0.2s;
+  flex-shrink: 0;
+  color: #999;
+}
+
+.dept-expand.has-children {
+  color: #1a2b3c;
+}
+
+.dept-expand.expanded {
+  transform: rotate(90deg);
+}
+
+.dept-name {
+  flex: 1;
+  font-size: 14px;
+  color: #1a2b3c;
+  padding: 2px 8px;
+  border-radius: 4px;
+  cursor: text;
+  min-width: 0;
+}
+
+.dept-name:hover {
+  background-color: rgba(0, 107, 63, 0.06);
+}
+
+.dept-edit-inline {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  flex: 1;
+}
+
+.dept-actions {
+  display: flex;
+  align-items: center;
+  gap: 0;
+  opacity: 0;
+  transition: opacity 0.15s;
+}
+
+.dept-node:hover .dept-actions {
+  opacity: 1;
+}
+
+.dept-children {
+  border-left: 1px dashed #d9d9d9;
+  margin-left: 22px;
+}
+
+/* Level colors */
+.dept-node.level-0 .dept-name {
+  font-weight: 600;
+}
+
+.dept-node.level-1 .dept-name {
+  font-weight: 500;
 }

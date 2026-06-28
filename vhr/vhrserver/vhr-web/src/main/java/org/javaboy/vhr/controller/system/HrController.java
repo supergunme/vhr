@@ -6,6 +6,7 @@ import org.javaboy.vhr.model.Role;
 import org.javaboy.vhr.service.HrService;
 import org.javaboy.vhr.service.RoleService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -57,5 +58,28 @@ public class HrController {
             return RespBean.ok("删除成功!");
         }
         return RespBean.error("删除失败!");
+    }
+
+    @PostMapping("/")
+    public RespBean addHr(@RequestBody Hr hr) {
+        if (hr.getPassword() != null && !hr.getPassword().isEmpty()) {
+            hr.setPassword(new BCryptPasswordEncoder().encode(hr.getPassword()));
+        }
+        hr.setEnabled(true);
+        if (hr.getUserface() == null || hr.getUserface().isEmpty()) {
+            hr.setUserface("/avatars/cat.svg");
+        }
+        if (hrService.addHr(hr) == 1) {
+            return RespBean.ok("添加成功!");
+        }
+        return RespBean.error("添加失败!");
+    }
+
+    @PutMapping("/status")
+    public RespBean updateHrEnabled(@RequestBody Hr hr) {
+        if (hrService.updateHr(hr) == 1) {
+            return RespBean.ok("更新成功!");
+        }
+        return RespBean.error("更新失败!");
     }
 }

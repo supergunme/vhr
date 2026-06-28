@@ -3,6 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { Card, Tabs, Tag, Button, Loading } from 'tdesign-react';
 import { ChevronLeftIcon } from 'tdesign-icons-react';
 import { getEmployeeById } from '../../../api/employee';
+import { getAvatarUrl } from '../../../utils/avatar';
 import type { Employee } from '../../../types';
 import './index.css';
 
@@ -94,7 +95,7 @@ export default function EmployeeDetail() {
         <div className="profile-header">
           <img
             className="profile-avatar"
-            src={(employee as any).userface || '/avatars/cat.svg'}
+            src={getAvatarUrl((employee as any).userface, employee.id)}
             alt={employee.name}
           />
           <div className="profile-meta">

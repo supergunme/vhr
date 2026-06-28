@@ -1,30 +1,37 @@
 import { useState, useEffect } from 'react';
 import { Card, Row, Col, Button, Space, Loading } from 'tdesign-react';
-import { UserIcon, EditIcon, UploadIcon, ChartIcon, RootListIcon, CalendarIcon } from 'tdesign-icons-react';
+import { UserIcon, EditIcon, UploadIcon, ChartIcon, RootListIcon, CalendarIcon, TaskIcon } from 'tdesign-icons-react';
 import { useNavigate } from 'react-router-dom';
 import { useAppStore } from '../../store';
-import { getEmployeeList } from '../../api/employee';
+import { getOverview } from '../../api/statistics';
 import './index.css';
+
+interface OverviewData {
+  totalEmployees: number;
+  totalDepartments: number;
+  hiredThisMonth: number;
+  pendingItems: number;
+}
 
 const Dashboard: React.FC = () => {
   const navigate = useNavigate();
   const currentUser = useAppStore((s) => s.currentUser);
-  const [totalEmployees, setTotalEmployees] = useState<number>(0);
+  const [overview, setOverview] = useState<OverviewData | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     setLoading(true);
-    getEmployeeList(1, 1).then((resp) => {
-      if (resp) setTotalEmployees(resp.total || 0);
+    getOverview().then((resp) => {
+      if (resp) setOverview(resp as OverviewData);
     }).finally(() => setLoading(false));
   }, []);
 
-  const stats = [
-    { label: '员工总数', value: totalEmployees.toLocaleString(), icon: <UserIcon size="24px" />, color: '#006b3f' },
-    { label: '部门数量', value: '105', icon: <RootListIcon size="24px" />, color: '#1890ff' },
-    { label: '本月入职', value: '12', icon: <CalendarIcon size="24px" />, color: '#c9a96e' },
-    { label: '待处理事项', value: '3', icon: <EditIcon size="24px" />, color: '#f5222d' },
-  ];
+  const stats = overview ? [
+    { label: '员工总数', value: overview.totalEmployees.toLocaleString(), icon: <UserIcon size="24px" />, color: '#006b3f' },
+    { label: '部门数量', value: String(overview.totalDepartments), icon: <RootListIcon size="24px" />, color: '#1890ff' },
+    { label: '本月入职', value: String(overview.hiredThisMonth), icon: <CalendarIcon size="24px" />, color: '#c9a96e' },
+    { label: '待处理事项', value: String(overview.pendingItems), icon: <TaskIcon size="24px" />, color: '#f5222d' },
+  ] : [];
 
   if (loading) {
     return <div style={{ display: 'flex', justifyContent: 'center', paddingTop: 100 }}><Loading /></div>;

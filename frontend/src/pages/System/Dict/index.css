@@ -1,24 +1,19 @@
 .system-dict-page {
-  max-width: 900px;
+  max-width: 800px;
 }
 
 .dict-content {
-  padding-top: 16px;
+  padding: 16px 0;
 }
 
 .dict-add-row {
-  margin-bottom: 20px;
-}
-
-.dict-tags {
   display: flex;
-  flex-wrap: wrap;
-  gap: 10px;
-  min-height: 40px;
   align-items: center;
+  justify-content: space-between;
+  margin-bottom: 16px;
 }
 
-.empty-hint {
-  color: #bfbfbf;
+.dict-count {
   font-size: 13px;
+  color: #999;
 }

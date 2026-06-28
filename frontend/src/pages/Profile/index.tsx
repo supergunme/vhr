@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Card, Avatar, Button, Input, Divider, MessagePlugin, Space } from 'tdesign-react';
 import { useAppStore } from '../../store';
+import { getAvatarUrl } from '../../utils/avatar';
 import './index.css';
 
 export default function Profile() {
@@ -34,7 +35,7 @@ export default function Profile() {
       {/* User Info Card */}
       <Card bordered={false} className="profile-card">
         <div className="profile-header">
-          <Avatar size="80px" image={currentUser?.userface || '/avatars/cat.svg'} />
+          <Avatar size="80px" image={getAvatarUrl(currentUser?.userface, currentUser?.id)} />
           <div className="profile-info">
             <h2 className="profile-name">{currentUser?.name || '管理员'}</h2>
             <p className="profile-role">

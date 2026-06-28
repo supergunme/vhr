@@ -8,7 +8,6 @@ import {
   Space,
   Dialog,
   Form,
-  FormItem,
   Input,
   InputNumber,
   Radio,
@@ -19,12 +18,12 @@ import {
 } from 'tdesign-react';
 import { AddIcon } from 'tdesign-icons-react';
 import { getBriefEmployees } from '../../../api/analysis';
+import type { Employeeec } from '../../../api/rewards';
 import {
   getRewardsByEid,
   addReward,
   updateReward,
   deleteReward,
-  Employeeec,
 } from '../../../api/rewards';
 import './index.css';
 
@@ -207,46 +206,46 @@ export default function EmployeeRewards() {
         width={500}
       >
         <Form labelWidth={80}>
-          <FormItem label="类型">
+          <Form.FormItem label="类型">
             <Radio.Group
               value={form.ectype}
-              onChange={(val) => updateField('ectype', val)}
+              onChange={(val) => updateField('ectype', val as number)}
             >
               <Radio value={0}>奖励</Radio>
               <Radio value={1}>惩罚</Radio>
             </Radio.Group>
-          </FormItem>
-          <FormItem label="日期">
+          </Form.FormItem>
+          <Form.FormItem label="日期">
             <DatePicker
               value={form.ecdate}
               onChange={(val) => updateField('ecdate', val)}
               format="YYYY-MM-DD"
               style={{ width: '100%' }}
             />
-          </FormItem>
-          <FormItem label="原因">
+          </Form.FormItem>
+          <Form.FormItem label="原因">
             <Input
               value={form.ecreason}
               onChange={(val) => updateField('ecreason', val)}
               placeholder="请输入奖惩原因"
             />
-          </FormItem>
-          <FormItem label="积分">
+          </Form.FormItem>
+          <Form.FormItem label="积分">
             <InputNumber
               value={form.ecpoint}
               onChange={(val) => updateField('ecpoint', val)}
               min={-100}
               max={100}
             />
-          </FormItem>
-          <FormItem label="备注">
+          </Form.FormItem>
+          <Form.FormItem label="备注">
             <Textarea
               value={form.remark || ''}
               onChange={(val) => updateField('remark', val)}
               placeholder="备注信息"
               autosize={{ minRows: 3 }}
             />
-          </FormItem>
+          </Form.FormItem>
         </Form>
       </Dialog>
     </div>

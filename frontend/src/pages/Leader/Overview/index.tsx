@@ -1,24 +1,9 @@
-import { Card, Row, Col, Table, Tag } from 'tdesign-react';
+import { useState, useEffect } from 'react';
+import { Card, Row, Col, Table, Tag, Loading } from 'tdesign-react';
 import { UserIcon, CalendarIcon, SwapIcon, CheckCircleIcon } from 'tdesign-icons-react';
 import ReactECharts from 'echarts-for-react';
+import { getOverview, getDepartmentDist, getEducationDist } from '../../../api/statistics';
 import './index.css';
-
-const deptData = [
-  { name: '信贷部', value: 320 },
-  { name: '运营部', value: 280 },
-  { name: '风控部', value: 180 },
-  { name: '科技部', value: 150 },
-  { name: '人力部', value: 120 },
-  { name: '其他', value: 892 },
-];
-
-const eduData = [
-  { name: '博士', value: 23 },
-  { name: '硕士', value: 312 },
-  { name: '本科', value: 1089 },
-  { name: '大专', value: 418 },
-  { name: '高中及以下', value: 100 },
-];
 
 const recentChanges = [
   { id: 1, date: '2024-06-28', name: '王建国', type: '入职', department: '信贷部' },
@@ -27,48 +12,6 @@ const recentChanges = [
   { id: 4, date: '2024-06-25', name: '陈伟', type: '离职', department: '市场部' },
   { id: 5, date: '2024-06-24', name: '刘芳', type: '调岗', department: '人力部 → 运营部' },
 ];
-
-const stats = [
-  { label: '团队人数', value: '1,942', icon: <UserIcon size="24px" />, color: '#006b3f' },
-  { label: '平均司龄', value: '6.8年', icon: <CalendarIcon size="24px" />, color: '#1890ff' },
-  { label: '本月变动', value: '5', icon: <SwapIcon size="24px" />, color: '#c9a96e' },
-  { label: '优秀员工', value: '128', icon: <CheckCircleIcon size="24px" />, color: '#52c41a' },
-];
-
-const pieOption = {
-  tooltip: { trigger: 'item' as const, formatter: '{b}: {c}人 ({d}%)' },
-  legend: { bottom: 0, left: 'center' },
-  color: ['#006b3f', '#00a651', '#c9a96e', '#1890ff', '#722ed1', '#d9d9d9'],
-  series: [
-    {
-      type: 'pie',
-      radius: ['40%', '70%'],
-      avoidLabelOverlap: false,
-      itemStyle: { borderRadius: 6, borderColor: '#fff', borderWidth: 2 },
-      label: { show: false },
-      emphasis: { label: { show: true, fontSize: 14, fontWeight: 'bold' } },
-      data: deptData,
-    },
-  ],
-};
-
-const barOption = {
-  tooltip: { trigger: 'axis' as const },
-  xAxis: { type: 'value' as const },
-  yAxis: {
-    type: 'category' as const,
-    data: [...eduData].sort((a, b) => a.value - b.value).map((d) => d.name),
-  },
-  grid: { left: 80, right: 30, top: 20, bottom: 30 },
-  series: [
-    {
-      type: 'bar',
-      data: [...eduData].sort((a, b) => a.value - b.value).map((d) => d.value),
-      itemStyle: { color: '#006b3f', borderRadius: [0, 4, 4, 0] },
-      barWidth: 24,
-    },
-  ],
-};
 
 const tableColumns = [
   { colKey: 'date', title: '日期', width: 120 },
@@ -90,6 +33,71 @@ const tableColumns = [
 ];
 
 export default function LeaderOverview() {
+  const [loading, setLoading] = useState(true);
+  const [totalEmployees, setTotalEmployees] = useState(0);
+  const [deptData, setDeptData] = useState<{ name: string; value: number }[]>([]);
+  const [eduData, setEduData] = useState<{ name: string; value: number }[]>([]);
+
+  useEffect(() => {
+    setLoading(true);
+    Promise.all([
+      getOverview(),
+      getDepartmentDist(),
+      getEducationDist(),
+    ]).then(([overview, dept, edu]) => {
+      if (overview) setTotalEmployees(overview.totalEmployees || 0);
+      if (dept) setDeptData(dept as any[]);
+      if (edu) setEduData(edu as any[]);
+    }).finally(() => setLoading(false));
+  }, []);
+
+  const stats = [
+    { label: '团队人数', value: totalEmployees.toLocaleString(), icon: <UserIcon size="24px" />, color: '#006b3f' },
+    { label: '平均司龄', value: '6.8年', icon: <CalendarIcon size="24px" />, color: '#1890ff' },
+    { label: '本月变动', value: '5', icon: <SwapIcon size="24px" />, color: '#c9a96e' },
+    { label: '优秀员工', value: '128', icon: <CheckCircleIcon size="24px" />, color: '#52c41a' },
+  ];
+
+  const pieOption = {
+    tooltip: { trigger: 'item' as const, formatter: '{b}: {c}人 ({d}%)' },
+    legend: { bottom: 0, left: 'center' },
+    color: ['#006b3f', '#00a651', '#c9a96e', '#1890ff', '#722ed1', '#d9d9d9'],
+    series: [
+      {
+        type: 'pie',
+        radius: ['40%', '70%'],
+        avoidLabelOverlap: false,
+        itemStyle: { borderRadius: 6, borderColor: '#fff', borderWidth: 2 },
+        label: { show: false },
+        emphasis: { label: { show: true, fontSize: 14, fontWeight: 'bold' } },
+        data: deptData,
+      },
+    ],
+  };
+
+  const sortedEdu = [...eduData].sort((a, b) => Number(a.value) - Number(b.value));
+  const barOption = {
+    tooltip: { trigger: 'axis' as const },
+    xAxis: { type: 'value' as const },
+    yAxis: {
+      type: 'category' as const,
+      data: sortedEdu.map((d) => d.name),
+    },
+    grid: { left: 80, right: 30, top: 20, bottom: 30 },
+    series: [
+      {
+        type: 'bar',
+        data: sortedEdu.map((d) => d.value),
+        itemStyle: { color: '#006b3f', borderRadius: [0, 4, 4, 0] },
+        barWidth: 24,
+      },
+    ],
+  };
+
+  if (loading) {
+    return <div style={{ display: 'flex', justifyContent: 'center', paddingTop: 100 }}><Loading /></div>;
+  }
+
   return (
     <div className="leader-overview">
       {/* Stats */}

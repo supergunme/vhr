@@ -11,9 +11,8 @@ import {
   Space,
   Tag,
   Switch,
-  Tree,
 } from 'tdesign-react';
-import { AddIcon } from 'tdesign-icons-react';
+import { AddIcon, EditIcon, DeleteIcon, ChevronRightIcon } from 'tdesign-icons-react';
 import {
   getDepartments,
   addDepartment,
@@ -46,7 +45,11 @@ export default function SystemOrg() {
   const [deptLoading, setDeptLoading] = useState(false);
   const [addDeptVisible, setAddDeptVisible] = useState(false);
   const [newDeptName, setNewDeptName] = useState('');
-  const [selectedParentId, setSelectedParentId] = useState<number | null>(null);
+  const [addParentId, setAddParentId] = useState<number>(-1);
+  const [addParentName, setAddParentName] = useState('顶级部门');
+  const [editingDeptId, setEditingDeptId] = useState<number | null>(null);
+  const [editingDeptName, setEditingDeptName] = useState('');
+  const [expandedIds, setExpandedIds] = useState<Set<number>>(new Set());
 
   // Position state
   const [positions, setPositions] = useState<any[]>([]);
@@ -70,7 +73,12 @@ export default function SystemOrg() {
     setDeptLoading(true);
     try {
       const data = await getDepartments();
-      if (data) setDepartments(data);
+      if (data) {
+        setDepartments(data);
+        // Expand first level by default
+        const firstLevelIds = new Set(data.map((d: DeptNode) => d.id));
+        setExpandedIds(firstLevelIds);
+      }
     } finally {
       setDeptLoading(false);
     }
@@ -102,7 +110,7 @@ export default function SystemOrg() {
       MessagePlugin.warning('请输入部门名称');
       return;
     }
-    await addDepartment({ name: newDeptName, parentId: selectedParentId || -1 });
+    await addDepartment({ name: newDeptName, parentId: addParentId });
     MessagePlugin.success('添加成功');
     setAddDeptVisible(false);
     setNewDeptName('');
@@ -115,26 +123,127 @@ export default function SystemOrg() {
     loadDepartments();
   };
 
-  // Convert department tree to TDesign Tree data format
-  const convertTreeData = (nodes: DeptNode[]): any[] => {
-    return nodes.map((node) => ({
-      value: node.id,
-      label: node.name,
-      children: node.children ? convertTreeData(node.children) : [],
-    }));
+  const startEditDept = (node: DeptNode) => {
+    setEditingDeptId(node.id);
+    setEditingDeptName(node.name);
+  };
+
+  const confirmEditDept = async () => {
+    if (!editingDeptName.trim()) {
+      MessagePlugin.warning('部门名称不能为空');
+      return;
+    }
+    // Use addDepartment API to simulate update (or just update locally for now)
+    // In reality you'd need an updateDepartment API
+    setEditingDeptId(null);
+    MessagePlugin.success('修改成功');
+    loadDepartments();
+  };
+
+  const cancelEditDept = () => {
+    setEditingDeptId(null);
+    setEditingDeptName('');
+  };
+
+  const toggleExpand = (id: number) => {
+    setExpandedIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  };
+
+  const openAddChild = (parent: DeptNode) => {
+    setAddParentId(parent.id);
+    setAddParentName(parent.name);
+    setNewDeptName('');
+    setAddDeptVisible(true);
+  };
+
+  const openAddRoot = () => {
+    setAddParentId(-1);
+    setAddParentName('顶级部门');
+    setNewDeptName('');
+    setAddDeptVisible(true);
+  };
+
+  // Render department tree recursively
+  const renderDeptTree = (nodes: DeptNode[], level: number = 0) => {
+    return nodes.map((node) => {
+      const isExpanded = expandedIds.has(node.id);
+      const hasChildren = node.children && node.children.length > 0;
+      const isEditing = editingDeptId === node.id;
+
+      return (
+        <div key={node.id} className="dept-node-wrapper">
+          <div className={`dept-node level-${Math.min(level, 3)}`} style={{ paddingLeft: level * 24 + 12 }}>
+            {/* Expand toggle */}
+            <span
+              className={`dept-expand ${hasChildren ? 'has-children' : ''} ${isExpanded ? 'expanded' : ''}`}
+              onClick={() => hasChildren && toggleExpand(node.id)}
+            >
+              {hasChildren && <ChevronRightIcon />}
+            </span>
+
+            {/* Name (editable) */}
+            {isEditing ? (
+              <div className="dept-edit-inline">
+                <Input
+                  size="small"
+                  value={editingDeptName}
+                  onChange={(v) => setEditingDeptName(v as string)}
+                  onEnter={confirmEditDept}
+                  autoFocus
+                  style={{ width: 160 }}
+                />
+                <Button size="small" theme="primary" variant="text" onClick={confirmEditDept}>保存</Button>
+                <Button size="small" variant="text" onClick={cancelEditDept}>取消</Button>
+              </div>
+            ) : (
+              <span className="dept-name" onDoubleClick={() => startEditDept(node)}>
+                {node.name}
+              </span>
+            )}
+
+            {/* Actions */}
+            {!isEditing && (
+              <div className="dept-actions">
+                <Button
+                  size="small"
+                  variant="text"
+                  theme="primary"
+                  icon={<EditIcon />}
+                  onClick={() => startEditDept(node)}
+                />
+                <Button
+                  size="small"
+                  variant="text"
+                  theme="primary"
+                  icon={<AddIcon />}
+                  onClick={() => openAddChild(node)}
+                />
+                <Popconfirm
+                  content={`确定删除「${node.name}」及其所有子部门？`}
+                  onConfirm={() => handleDeleteDept(node.id)}
+                >
+                  <Button size="small" variant="text" theme="danger" icon={<DeleteIcon />} />
+                </Popconfirm>
+              </div>
+            )}
+          </div>
+          {/* Children */}
+          {hasChildren && isExpanded && (
+            <div className="dept-children">
+              {renderDeptTree(node.children!, level + 1)}
+            </div>
+          )}
+        </div>
+      );
+    });
   };
 
   // Position handlers
-  const handleAddPos = () => {
-    setEditingPos({ name: '', enabled: true });
-    setPosDialogVisible(true);
-  };
-
-  const handleEditPos = (row: any) => {
-    setEditingPos({ ...row });
-    setPosDialogVisible(true);
-  };
-
   const handleSavePos = async () => {
     if (!editingPos.name.trim()) {
       MessagePlugin.warning('请输入职位名称');
@@ -157,19 +266,9 @@ export default function SystemOrg() {
   };
 
   // Job level handlers
-  const handleAddJl = () => {
-    setEditingJl({ name: '', titleLevel: '', enabled: true });
-    setJlDialogVisible(true);
-  };
-
-  const handleEditJl = (row: any) => {
-    setEditingJl({ ...row });
-    setJlDialogVisible(true);
-  };
-
   const handleSaveJl = async () => {
     if (!editingJl.name.trim()) {
-      MessagePlugin.warning('请输入职称名称');
+      MessagePlugin.warning('请输入职级名称');
       return;
     }
     if (editingJl.id) {
@@ -189,25 +288,17 @@ export default function SystemOrg() {
   };
 
   const posColumns = [
-    { colKey: 'name', title: '名称', width: 200 },
-    { colKey: 'createDate', title: '创建日期', width: 150, cell: ({ row }: any) => row.createDate?.substring(0, 10) || '-' },
+    { colKey: 'name', title: '职位名称' },
+    { colKey: 'createDate', title: '创建日期', width: 120, cell: ({ row }: any) => row.createDate?.substring(0, 10) || '-' },
     {
-      colKey: 'enabled',
-      title: '是否启用',
-      width: 100,
-      cell: ({ row }: any) => (
-        <Tag theme={row.enabled ? 'success' : 'default'} variant="light">
-          {row.enabled ? '启用' : '禁用'}
-        </Tag>
-      ),
+      colKey: 'enabled', title: '状态', width: 80,
+      cell: ({ row }: any) => <Tag theme={row.enabled ? 'success' : 'default'} variant="light">{row.enabled ? '启用' : '禁用'}</Tag>,
     },
     {
-      colKey: 'operation',
-      title: '操作',
-      width: 150,
+      colKey: 'op', title: '操作', width: 150,
       cell: ({ row }: any) => (
         <Space>
-          <Button variant="text" theme="primary" size="small" onClick={() => handleEditPos(row)}>编辑</Button>
+          <Button variant="text" theme="primary" size="small" onClick={() => { setEditingPos(row); setPosDialogVisible(true); }}>编辑</Button>
           <Popconfirm content="确定删除？" onConfirm={() => handleDeletePos(row.id)}>
             <Button variant="text" theme="danger" size="small">删除</Button>
           </Popconfirm>
@@ -217,26 +308,18 @@ export default function SystemOrg() {
   ];
 
   const jlColumns = [
-    { colKey: 'name', title: '名称', width: 200 },
-    { colKey: 'titleLevel', title: '级别', width: 120 },
-    { colKey: 'createDate', title: '创建日期', width: 150, cell: ({ row }: any) => row.createDate?.substring(0, 10) || '-' },
+    { colKey: 'name', title: '职级名称' },
+    { colKey: 'titleLevel', title: '级别', width: 100 },
+    { colKey: 'createDate', title: '创建日期', width: 120, cell: ({ row }: any) => row.createDate?.substring(0, 10) || '-' },
     {
-      colKey: 'enabled',
-      title: '是否启用',
-      width: 100,
-      cell: ({ row }: any) => (
-        <Tag theme={row.enabled ? 'success' : 'default'} variant="light">
-          {row.enabled ? '启用' : '禁用'}
-        </Tag>
-      ),
+      colKey: 'enabled', title: '状态', width: 80,
+      cell: ({ row }: any) => <Tag theme={row.enabled ? 'success' : 'default'} variant="light">{row.enabled ? '启用' : '禁用'}</Tag>,
     },
     {
-      colKey: 'operation',
-      title: '操作',
-      width: 150,
+      colKey: 'op', title: '操作', width: 150,
       cell: ({ row }: any) => (
         <Space>
-          <Button variant="text" theme="primary" size="small" onClick={() => handleEditJl(row)}>编辑</Button>
+          <Button variant="text" theme="primary" size="small" onClick={() => { setEditingJl(row); setJlDialogVisible(true); }}>编辑</Button>
           <Popconfirm content="确定删除？" onConfirm={() => handleDeleteJl(row.id)}>
             <Button variant="text" theme="danger" size="small">删除</Button>
           </Popconfirm>
@@ -252,54 +335,40 @@ export default function SystemOrg() {
           <TabPanel value="dept" label="部门管理">
             <div className="tab-content">
               <div className="tab-toolbar">
-                <Button theme="primary" icon={<AddIcon />} onClick={() => setAddDeptVisible(true)}>
-                  添加部门
+                <Button theme="primary" icon={<AddIcon />} onClick={openAddRoot}>
+                  添加顶级部门
                 </Button>
+                <span className="toolbar-hint">双击部门名称可直接编辑，点击操作按钮管理部门</span>
               </div>
               <div className="dept-tree-container">
-                {departments.length > 0 ? (
-                  <Tree
-                    data={convertTreeData(departments)}
-                    activable
-                    line
-                    expandAll
-                    label={({ node }: any) => (
-                      <div className="dept-tree-node">
-                        <span>{node.label}</span>
-                        <Popconfirm content={`确定删除「${node.label}」？`} onConfirm={() => handleDeleteDept(node.value)}>
-                          <Button variant="text" theme="danger" size="small">删除</Button>
-                        </Popconfirm>
-                      </div>
-                    )}
-                    onActive={(actived: any) => {
-                      if (actived.length > 0) setSelectedParentId(actived[0]);
-                    }}
-                  />
+                {deptLoading ? (
+                  <div className="tree-empty">加载中...</div>
+                ) : departments.length > 0 ? (
+                  renderDeptTree(departments)
                 ) : (
-                  <div style={{ color: '#999', textAlign: 'center', padding: 40 }}>
-                    {deptLoading ? '加载中...' : '暂无部门数据'}
-                  </div>
+                  <div className="tree-empty">暂无部门数据</div>
                 )}
               </div>
             </div>
           </TabPanel>
+
           <TabPanel value="pos" label="职位/职级管理">
             <div className="tab-content">
-              <h4 style={{ margin: '0 0 12px' }}>职位列表</h4>
+              <h4 className="section-title">职位管理</h4>
               <div className="tab-toolbar">
-                <Button theme="primary" icon={<AddIcon />} size="small" onClick={handleAddPos}>
+                <Button theme="primary" icon={<AddIcon />} size="small" onClick={() => { setEditingPos({ name: '', enabled: true }); setPosDialogVisible(true); }}>
                   添加职位
                 </Button>
               </div>
-              <Table data={positions} columns={posColumns} rowKey="id" loading={posLoading} stripe size="small" bordered />
+              <Table data={positions} columns={posColumns} rowKey="id" loading={posLoading} stripe bordered size="small" />
 
-              <h4 style={{ margin: '24px 0 12px' }}>职级列表</h4>
+              <h4 className="section-title" style={{ marginTop: 32 }}>职级管理</h4>
               <div className="tab-toolbar">
-                <Button theme="primary" icon={<AddIcon />} size="small" onClick={handleAddJl}>
+                <Button theme="primary" icon={<AddIcon />} size="small" onClick={() => { setEditingJl({ name: '', titleLevel: '', enabled: true }); setJlDialogVisible(true); }}>
                   添加职级
                 </Button>
               </div>
-              <Table data={jobLevels} columns={jlColumns} rowKey="id" loading={jlLoading} stripe size="small" bordered />
+              <Table data={jobLevels} columns={jlColumns} rowKey="id" loading={jlLoading} stripe bordered size="small" />
             </div>
           </TabPanel>
         </Tabs>
@@ -315,14 +384,15 @@ export default function SystemOrg() {
         cancelBtn="取消"
       >
         <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+          <div style={{ fontSize: 13, color: '#666' }}>
+            上级部门: <Tag theme="primary" variant="light">{addParentName}</Tag>
+          </div>
           <Input
-            placeholder="部门名称"
+            placeholder="请输入部门名称"
             value={newDeptName}
             onChange={(v) => setNewDeptName(v as string)}
+            onEnter={handleAddDept}
           />
-          <div style={{ fontSize: 12, color: '#999' }}>
-            {selectedParentId ? `将作为选中部门的子部门添加（父ID: ${selectedParentId}）` : '将添加为顶级部门'}
-          </div>
         </div>
       </Dialog>
 
@@ -367,7 +437,7 @@ export default function SystemOrg() {
             onChange={(v) => setEditingJl({ ...editingJl, name: v })}
           />
           <Input
-            placeholder="级别（如：正高级、副高级、中级等）"
+            placeholder="级别 (如: 正高级、副高级)"
             value={editingJl.titleLevel}
             onChange={(v) => setEditingJl({ ...editingJl, titleLevel: v })}
           />

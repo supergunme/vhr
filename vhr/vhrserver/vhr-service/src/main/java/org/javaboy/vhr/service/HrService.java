@@ -58,6 +58,10 @@ public class HrService implements UserDetailsService {
         return hrMapper.deleteByPrimaryKey(id);
     }
 
+    public Integer addHr(Hr hr) {
+        return hrMapper.insertSelective(hr);
+    }
+
     public List<Hr> getAllHrsExceptCurrentHr() {
         return hrMapper.getAllHrsExceptCurrentHr(HrUtils.getCurrentHr().getId());
     }

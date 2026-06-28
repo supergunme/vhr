@@ -12,9 +12,11 @@ import {
   Popconfirm,
   MessagePlugin,
   Checkbox,
+  Form,
 } from 'tdesign-react';
-import { SearchIcon } from 'tdesign-icons-react';
-import { getHrList, deleteHr, updateHrRoles, toggleHrEnabled, getAllRoles } from '../../../api/system';
+import { SearchIcon, AddIcon } from 'tdesign-icons-react';
+import { getHrList, deleteHr, updateHrRoles, toggleHrEnabled, getAllRoles, addHr, updateHr } from '../../../api/system';
+import { ANIMAL_AVATARS } from '../../../utils/avatar';
 import './index.css';
 
 interface HrUser {
@@ -22,6 +24,7 @@ interface HrUser {
   name: string;
   username: string;
   phone?: string;
+  address?: string;
   userface?: string;
   enabled: boolean;
   roles?: { id: number; name: string; nameZh: string }[];
@@ -40,9 +43,21 @@ export default function SystemUser() {
   const [roles, setRoles] = useState<Role[]>([]);
   const [loading, setLoading] = useState(false);
   const [keyword, setKeyword] = useState('');
+
+  // Role dialog
   const [roleDialogVisible, setRoleDialogVisible] = useState(false);
   const [currentUser, setCurrentUser] = useState<HrUser | null>(null);
   const [selectedRoleIds, setSelectedRoleIds] = useState<number[]>([]);
+
+  // Add/Edit dialog
+  const [userDialogVisible, setUserDialogVisible] = useState(false);
+  const [userDialogTitle, setUserDialogTitle] = useState('新增管理员');
+  const [userForm, setUserForm] = useState<{ id?: number; name: string; username: string; password: string; phone: string }>({
+    name: '',
+    username: '',
+    password: '',
+    phone: '',
+  });
 
   const loadUsers = async () => {
     setLoading(true);
@@ -61,9 +76,7 @@ export default function SystemUser() {
     });
   }, []);
 
-  const handleSearch = () => {
-    loadUsers();
-  };
+  const handleSearch = () => loadUsers();
 
   const handleDelete = async (id: number, name: string) => {
     await deleteHr(id);
@@ -77,6 +90,7 @@ export default function SystemUser() {
     loadUsers();
   };
 
+  // Role dialog
   const openRoleDialog = (user: HrUser) => {
     setCurrentUser(user);
     setSelectedRoleIds(user.roles?.map((r) => r.id) || []);
@@ -92,13 +106,53 @@ export default function SystemUser() {
     }
   };
 
+  // Add user dialog
+  const openAddDialog = () => {
+    setUserDialogTitle('新增管理员');
+    setUserForm({ name: '', username: '', password: '', phone: '' });
+    setUserDialogVisible(true);
+  };
+
+  // Edit user dialog
+  const openEditDialog = (user: HrUser) => {
+    setUserDialogTitle('编辑管理员');
+    setUserForm({ id: user.id, name: user.name, username: user.username, password: '', phone: user.phone || '' });
+    setUserDialogVisible(true);
+  };
+
+  const handleUserSubmit = async () => {
+    if (!userForm.name.trim() || !userForm.username.trim()) {
+      MessagePlugin.warning('姓名和用户名不能为空');
+      return;
+    }
+    try {
+      if (userForm.id) {
+        // Update
+        await updateHr({ id: userForm.id, name: userForm.name, phone: userForm.phone });
+        MessagePlugin.success('更新成功');
+      } else {
+        // Add
+        if (!userForm.password) {
+          MessagePlugin.warning('请设置初始密码');
+          return;
+        }
+        await addHr({ name: userForm.name, username: userForm.username, password: userForm.password, phone: userForm.phone });
+        MessagePlugin.success('添加成功');
+      }
+      setUserDialogVisible(false);
+      loadUsers();
+    } catch {
+      // handled by interceptor
+    }
+  };
+
   const columns = [
     {
       colKey: 'userface',
       title: '头像',
       width: 60,
       cell: ({ row }: { row: HrUser }) => (
-        <Avatar size="small" image={row.userface || '/avatars/cat.svg'} />
+        <Avatar size="small" image={row.userface?.startsWith('/avatars/') ? row.userface : ANIMAL_AVATARS[row.id % ANIMAL_AVATARS.length]} />
       ),
     },
     { colKey: 'name', title: '姓名', width: 100 },
@@ -111,9 +165,7 @@ export default function SystemUser() {
       cell: ({ row }: { row: HrUser }) => (
         <Space size="small" breakLine>
           {row.roles?.map((r) => (
-            <Tag key={r.id} theme="primary" variant="light" size="small">
-              {r.nameZh}
-            </Tag>
+            <Tag key={r.id} theme="primary" variant="light" size="small">{r.nameZh}</Tag>
           ))}
         </Space>
       ),
@@ -131,17 +183,14 @@ export default function SystemUser() {
     {
       colKey: 'operation',
       title: '操作',
-      width: 220,
+      width: 280,
       cell: ({ row }: { row: HrUser }) => (
         <Space size="small">
-          <Button variant="text" theme="primary" size="small" onClick={() => openRoleDialog(row)}>
-            编辑角色
-          </Button>
+          <Button variant="text" theme="primary" size="small" onClick={() => openEditDialog(row)}>编辑</Button>
+          <Button variant="text" theme="primary" size="small" onClick={() => openRoleDialog(row)}>角色</Button>
           <Switch size="small" value={row.enabled} onChange={() => handleToggleEnabled(row)} />
           <Popconfirm content={`确定删除「${row.name}」吗？`} onConfirm={() => handleDelete(row.id, row.name)}>
-            <Button variant="text" theme="danger" size="small">
-              删除
-            </Button>
+            <Button variant="text" theme="danger" size="small">删除</Button>
           </Popconfirm>
         </Space>
       ),
@@ -161,10 +210,9 @@ export default function SystemUser() {
               onEnter={handleSearch}
               style={{ width: 240 }}
             />
-            <Button theme="primary" onClick={handleSearch}>
-              搜索
-            </Button>
+            <Button theme="primary" onClick={handleSearch}>搜索</Button>
           </Space>
+          <Button theme="primary" icon={<AddIcon />} onClick={openAddDialog}>新增管理员</Button>
         </div>
         <Table
           data={users}
@@ -178,14 +226,47 @@ export default function SystemUser() {
         />
       </Card>
 
+      {/* Add/Edit user dialog */}
+      <Dialog
+        header={userDialogTitle}
+        visible={userDialogVisible}
+        onClose={() => setUserDialogVisible(false)}
+        onConfirm={handleUserSubmit}
+        confirmBtn="确定"
+        cancelBtn="取消"
+        width={480}
+      >
+        <Form labelWidth={80}>
+          <Form.FormItem label="姓名">
+            <Input value={userForm.name} onChange={(v) => setUserForm({ ...userForm, name: v as string })} placeholder="请输入姓名" />
+          </Form.FormItem>
+          <Form.FormItem label="用户名">
+            <Input
+              value={userForm.username}
+              onChange={(v) => setUserForm({ ...userForm, username: v as string })}
+              placeholder="登录用户名"
+              disabled={!!userForm.id}
+            />
+          </Form.FormItem>
+          {!userForm.id && (
+            <Form.FormItem label="初始密码">
+              <Input type="password" value={userForm.password} onChange={(v) => setUserForm({ ...userForm, password: v as string })} placeholder="设置初始密码" />
+            </Form.FormItem>
+          )}
+          <Form.FormItem label="电话">
+            <Input value={userForm.phone} onChange={(v) => setUserForm({ ...userForm, phone: v as string })} placeholder="联系电话" />
+          </Form.FormItem>
+        </Form>
+      </Dialog>
+
       {/* Role edit dialog */}
       <Dialog
         header="编辑角色"
         visible={roleDialogVisible}
         onClose={() => setRoleDialogVisible(false)}
         onConfirm={handleRoleSubmit}
-        confirmBtn={{ content: '确定', theme: 'primary' }}
-        cancelBtn={{ content: '取消' }}
+        confirmBtn="确定"
+        cancelBtn="取消"
       >
         <p style={{ marginBottom: 12 }}>
           为用户 <strong>{currentUser?.name}</strong> 分配角色：
