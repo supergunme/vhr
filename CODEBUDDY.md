@@ -4,112 +4,133 @@ This file provides guidance to CodeBuddy Code when working with code in this rep
 
 ## Project Overview
 
-vhr (员工信息同步平台) is a front-end/back-end separated HR management system. It is a scaffold/teaching project (SpringBoot 2.7 + Vue 2). The backend lives in `vhr/` (Maven multi-module) and the Vue frontend in `vuehr/`.
+**黑龙江农信员工信息同步平台** — 面向黑龙江省农村信用社联合社的企业级员工信息管理系统。
 
-**This project has been refactored from the original 微人事 project**, with the following major changes:
-- Removed: RabbitMQ mail server (`mailserver/`), WebSocket/STOMP chat, FastDFS file storage
-- Added: Local avatar system (SVG animal avatars), personnel management pages (employee info + rewards/punishments)
-- Frontend migrated from vue-cli/webpack to **Vite**
-- Platform renamed to "员工信息同步平台"
+技术栈：
+- **后端**: SpringBoot 2.7.18 + MyBatis + Spring Security + Flyway (JDK 1.8)
+- **前端**: React 18 + TypeScript + TDesign React + Vite + ECharts + Zustand
+- **数据库**: MySQL 8.0 + Redis
+
+品牌设计：
+- 主色：农信绿 `#006b3f` / `#00a651`
+- 辅助：金色 `#c9a96e`、深蓝灰 `#1a2b3c`
+- Logo: `frontend/public/logo.png`（黑龙江农信标识）
 
 ## Repository Layout
 
-- `vhr/` — Maven parent (`org.javaboy:vhr`) with one module:
-  - `vhrserver/` — the main HR application, a multi-module Maven project (see below). Runs on port **8081**.
-- `vuehr/` — Vue 2 + ElementUI + Vite frontend. Dev server on port **8088**, proxies API requests to `localhost:8081` via `vite.config.js`.
-- `vhr.sql` — full DB dump (reference only; schema is applied via Flyway).
+```
+/
+├── vhr/                    # Maven parent (后端)
+│   └── vhrserver/          # Multi-module: vhr-web → vhr-service → vhr-mapper → vhr-model
+├── frontend/               # React + TDesign 前端 (NEW)
+│   ├── src/
+│   │   ├── api/            # API 接口定义 (auth, employee, analysis, rewards, system, statistics)
+│   │   ├── components/     # 通用组件 (Layout)
+│   │   ├── pages/          # 页面 (17个)
+│   │   ├── store/          # Zustand 状态管理 (sessionStorage 持久化)
+│   │   ├── utils/          # 工具 (request, avatar, cache)
+│   │   ├── router/         # React Router v6
+│   │   └── types/          # TypeScript 类型定义
+│   └── public/             # 静态资源 (logo, avatars)
+├── vuehr/                  # Vue 2 旧前端 (已废弃，保留参考)
+├── CODEBUDDY.md            # 本文件
+└── 黑农logo.png            # 品牌 Logo 源文件
+```
 
 ### vhrserver submodules (layered architecture)
 
 `vhr-web` → `vhr-service` → `vhr-mapper` → `vhr-model`
 
-- `vhr-model` — POJOs / entities (`org.javaboy.vhr.model`).
-- `vhr-mapper` — MyBatis mapper interfaces + co-located `*.xml` mapper files (`org.javaboy.vhr.mapper`).
-- `vhr-service` — business services, POI/Excel utils (`org.javaboy.vhr.service`, `.utils`).
-- `vhr-web` — controllers, Spring Security config, the `VhrApplication` entry point, and **all packaged static frontend assets** under `src/main/resources/static`.
-
-The MyBatis mapper XMLs live next to the Java interfaces in `vhr-mapper/src/main/java`, so `vhr-web/pom.xml` adds `src/main/java/**/*.xml` as a build resource. `@MapperScan` is declared on `VhrApplication`.
+- `vhr-model` — POJOs / entities, DTO (RadarDataVO)
+- `vhr-mapper` — MyBatis mapper interfaces + co-located `*.xml` (含统计查询)
+- `vhr-service` — EmployeeService, EmployeeecService, AnalysisService, StatisticsService, HrService
+- `vhr-web` — Controllers, Spring Security, Flyway migrations, static assets
 
 ## Build & Run
 
-The application entry point is `VhrApplication` in `vhr-web`. Always run Maven commands from the `vhr/` directory.
-
 ```bash
-# Build the whole backend (run from vhr/)
+# Backend (from vhr/)
 cd vhr && mvn clean install -DskipTests
+cd vhr && mvn spring-boot:run -pl vhrserver/vhr-web   # port 8081
 
-# Run the main HR server (port 8081)
-cd vhr && mvn spring-boot:run -pl vhrserver/vhr-web
+# Frontend (from frontend/)
+cd frontend && npm install
+cd frontend && npm run dev    # port 3000, proxies to :8081
 ```
 
-### Frontend (vuehr/)
+Login: `admin` / `123` (验证码已关闭)
 
-```bash
-cd vuehr
-npm install
-npm run dev       # dev server on localhost:8088, proxies to :8081
-npm run build     # outputs to vuehr/dist
-```
+## Database Migrations (Flyway)
 
-To deploy the frontend into the backend: after `npm run build`, copy `vuehr/dist/static` and `vuehr/dist/index.html` into `vhr/vhrserver/vhr-web/src/main/resources/static/`.
-
-### Tests
-
-```bash
-cd vhr && mvn test
-cd vhr && mvn -pl vhrserver/vhr-web test -Dtest=ClassName#methodName
-```
-
-## Infrastructure Dependencies
-
-- **MySQL** — database named `vhr` must exist. Schema is created automatically by **Flyway** from `vhr-web/src/main/resources/db/migration/V1__vhr.sql` on first boot. `V2__update_avatars.sql` updates default avatars to local SVG files.
-- **Redis** — used for Spring Cache (`menus_cache`).
-
-Config file: `vhr/vhrserver/vhr-web/src/main/resources/application.yml` (edit hosts/credentials for your environment).
-
-## Security & Authorization Model
-
-Authorization is **dynamic and database-driven**, not annotation-based:
-
-- `config/SecurityConfig.java` — Spring Security. Login endpoint is `/doLogin` via custom `LoginFilter`. JSON responses for all auth events. Single-session enforcement.
-- `config/CustomFilterInvocationSecurityMetadataSource.java` — URL-to-role matching from DB.
-- `config/CustomUrlDecisionManager.java` — role-based access decisions.
-- `HrService` implements `UserDetailsService`; passwords use `BCryptPasswordEncoder`.
-
-Static resources whitelisted in SecurityConfig: `/css/**`, `/js/**`, `/index.html`, `/img/**`, `/fonts/**`, `/favicon.ico`, `/verifyCode`, `/userface/**`, `/avatars/**`.
-
-## API Proxy (Frontend → Backend)
-
-Vite proxy config in `vuehr/vite.config.js` forwards these prefixes to `localhost:8081`:
-`/doLogin`, `/logout`, `/verifyCode`, `/hr`, `/employee`, `/system`, `/salary`, `/personnel`
+| Version | Description |
+|---------|-------------|
+| V1 | 全量建表 (employee, hr, department, position, joblevel, role, menu, employeeec, salary...) |
+| V2 | 更新默认头像为本地 SVG (/avatars/*.svg) |
+| V3 | employee 新增分析字段 (hire_date, position_years, expertise_area, evaluation_score, special_contribution, leadership_level) + ROLE_leader |
+| V4 | 填充 mock 数据 (分析字段 + 奖惩记录) |
 
 ## Backend API Endpoints
 
 | Prefix | Controller | Description |
 |--------|-----------|-------------|
-| `/employee/basic/` | `EmpBasicController` | Employee CRUD, import/export |
-| `/personnel/emp/` | `PerEmpController` | Employee info query (personnel module) |
-| `/personnel/ec/` | `PerEcController` | Employee rewards/punishments CRUD |
-| `/system/basic/` | System controllers | Positions, job levels, departments, etc. |
-| `/system/hr/` | `SysHrController` | HR user management |
-| `/salary/` | Salary controllers | Salary management |
+| `POST /doLogin` | LoginFilter | 登录 (form-encoded, 验证码已跳过) |
+| `GET /hr/info` | HrInfoController | 获取当前登录用户信息 |
+| `/employee/basic/` | EmpBasicController | 员工 CRUD, 导入/导出, 下拉数据 |
+| `/personnel/emp/` | PerEmpController | 员工详情查询 |
+| `/personnel/ec/` | PerEcController | 员工奖惩 CRUD |
+| `/api/analysis/` | AnalysisController | 雷达图数据, 对比分析, 员工简要列表 |
+| `/api/statistics/` | StatisticsController | 仪表盘统计 (overview, department-dist, education-dist) |
+| `/system/hr/` | HrController | 管理员 CRUD + 角色分配 + 启停 |
+| `/system/basic/department/` | DepartmentController | 部门树 CRUD |
+| `/system/basic/pos/` | PositionController | 职位 CRUD |
+| `/system/basic/jl/` | JobLevelController | 职级 CRUD |
+
+## Frontend Pages (17 pages)
+
+| Module | Page | Route |
+|--------|------|-------|
+| Auth | 登录 | `/` |
+| Home | 仪表盘 | `/app/dashboard` |
+| Employee | 员工列表 | `/app/employee/list` |
+| Employee | 员工详情 | `/app/employee/detail/:id` |
+| Employee | 员工录入 | `/app/employee/form` |
+| Employee | 批量导入 | `/app/employee/import` |
+| Employee | 奖惩管理 | `/app/employee/rewards` |
+| Analysis | 员工雷达图 | `/app/analysis/radar` |
+| Analysis | 对比分析 | `/app/analysis/compare` |
+| Analysis | 岗位推荐 | `/app/analysis/recommend` |
+| Leader | 团队概览 | `/app/leader/overview` |
+| System | 用户管理 | `/app/system/user` |
+| System | 组织架构 | `/app/system/org` |
+| System | 操作日志 | `/app/system/log` |
+| System | 数据字典 | `/app/system/dict` |
+| User | 个人中心 | `/app/profile` |
 
 ## Frontend Conventions
 
-- All HTTP goes through `vuehr/src/utils/api.js` — centralizes axios interceptors. Use `getRequest/postRequest/putRequest/deleteRequest/postKeyValueRequest` helpers.
-- Dynamic routing via `vuehr/src/utils/menus.js` — fetches menu from backend, maps component name prefixes (`Emp`/`Per`/`Sal`/`Sta`/`Sys`/`Home`) to directories under `views/`.
-- Animation library: `animate.css` imported globally in `main.js`.
-- Employee custom tags stored in `localStorage` (`emp_custom_tags` key).
+- HTTP 请求: `frontend/src/utils/request.ts` (Axios + interceptors, withCredentials)
+- 状态管理: Zustand store, currentUser 持久化到 sessionStorage
+- 缓存策略: 下拉数据(民族/政治面貌/职位/职级/部门)缓存到 sessionStorage, 避免重复请求
+- 头像: `frontend/src/utils/avatar.ts` — 根据员工 ID 确定性分配本地动物头像
+- TDesign 组件注意: SubMenu/MenuItem 必须用 `Menu.SubMenu`/`Menu.MenuItem`, FormItem 必须用 `Form.FormItem`
+- Type-only imports: interface 导入必须用 `import type { X }` 而不是 `import { X }`
 
 ## Local Avatar System
 
-- SVG animal avatars stored in `vhr/vhrserver/vhr-web/src/main/resources/static/avatars/` (cat, dog, rabbit, bear, bird).
-- User-uploaded avatars stored in `{user.dir}/userface/`, served via `WebMvcConfig.java` resource handler.
-- Default avatars assigned via Flyway migration `V2__update_avatars.sql`.
+- SVG 动物头像: `frontend/public/avatars/` (cat, dog, rabbit, bear, bird)
+- 后端也有副本: `vhr/vhrserver/vhr-web/src/main/resources/static/avatars/`
+- 通过 `getAvatarUrl(userface, id)` 统一处理: 外部URL/空值 → 本地头像
 
-## Conventions
+## Security
 
-- Java base package: `org.javaboy.vhr` across all modules.
-- Controllers return `RespBean` wrapper (`RespBean.ok(...)` / `RespBean.error(...)`), paginated results use `RespPageBean`.
-- Exceptions handled in `web/exception/GlobalExceptionHandler.java`.
-- Spring Boot 2.7.18, Java 8+ compatible.
+- 验证码校验已临时关闭 (LoginFilter.checkCode 为空方法)
+- Session 管理: JSESSIONID cookie, 单会话限制
+- 角色: ROLE_admin, ROLE_leader, ROLE_personnel, ROLE_recruiter 等
+- URL 授权: 数据库驱动 (menu 表 url 字段 → role 映射)
+
+## Infrastructure
+
+- **MySQL**: database `vhr`, Flyway auto-migrate on boot
+- **Redis**: Spring Cache (`menus_cache`)
+- Config: `vhr/vhrserver/vhr-web/src/main/resources/application.yml`
+- Flyway: `validate-on-migrate: false` (允许已执行脚本修改)

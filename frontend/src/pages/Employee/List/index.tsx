@@ -68,12 +68,24 @@ export default function EmployeeList() {
   }, [loadEmployees]);
 
   useEffect(() => {
-    // Load dropdown data
-    getAllNations().then((d) => setNations((d || []) as Nation[]));
-    getAllPoliticsStatus().then((d) => setPoliticsStatuses((d || []) as PoliticsStatus[]));
-    getAllJobLevels().then((d) => setJobLevels((d || []) as JobLevel[]));
-    getAllPositions().then((d) => setPositions((d || []) as Position[]));
-    getAllDepartments().then((d) => setDepartments((d || []) as Department[]));
+    // Load dropdown data with sessionStorage caching
+    const loadCached = async (key: string, fetchFn: () => Promise<any>, setter: (d: any) => void) => {
+      const cached = sessionStorage.getItem(key);
+      if (cached) {
+        setter(JSON.parse(cached));
+      } else {
+        const d = await fetchFn();
+        if (d) {
+          setter(d);
+          sessionStorage.setItem(key, JSON.stringify(d));
+        }
+      }
+    };
+    loadCached('cache_nations', getAllNations, (d) => setNations(d as Nation[]));
+    loadCached('cache_politics', getAllPoliticsStatus, (d) => setPoliticsStatuses(d as PoliticsStatus[]));
+    loadCached('cache_joblevels', getAllJobLevels, (d) => setJobLevels(d as JobLevel[]));
+    loadCached('cache_positions', getAllPositions, (d) => setPositions(d as Position[]));
+    loadCached('cache_departments', getAllDepartments, (d) => setDepartments(d as Department[]));
   }, []);
 
   const handleDelete = async (id: number, name: string) => {

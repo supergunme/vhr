@@ -22,7 +22,14 @@ const Dashboard: React.FC = () => {
   useEffect(() => {
     setLoading(true);
     getOverview().then((resp) => {
-      if (resp) setOverview(resp as OverviewData);
+      if (resp) {
+        setOverview(resp as OverviewData);
+        sessionStorage.setItem('cache_overview', JSON.stringify(resp));
+      }
+    }).catch(() => {
+      // Try to load from cache if API fails
+      const cached = sessionStorage.getItem('cache_overview');
+      if (cached) setOverview(JSON.parse(cached));
     }).finally(() => setLoading(false));
   }, []);
 

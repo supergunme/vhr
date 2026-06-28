@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Outlet, useNavigate, useLocation } from 'react-router-dom';
 import { Menu, Dropdown, Button, Avatar } from 'tdesign-react';
 import {
@@ -26,13 +26,30 @@ import {
 } from 'tdesign-icons-react';
 import { useAppStore } from '../../store';
 import { getAvatarUrl } from '../../utils/avatar';
+import { getCurrentUser } from '../../api/auth';
 import './index.css';
 
 const Layout: React.FC = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const currentUser = useAppStore((s) => s.currentUser);
+  const setCurrentUser = useAppStore((s) => s.setCurrentUser);
   const [collapsed, setCollapsed] = useState(false);
+
+  // Restore user session on mount if not in store
+  useEffect(() => {
+    if (!currentUser) {
+      getCurrentUser().then((user: any) => {
+        if (user && user.id) {
+          setCurrentUser(user);
+        } else {
+          navigate('/');
+        }
+      }).catch(() => {
+        navigate('/');
+      });
+    }
+  }, []);
 
   const handleMenuChange = (value: string) => {
     navigate(value as string);
